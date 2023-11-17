@@ -1,0 +1,63 @@
+var moduleBase
+var moduleSize
+var start
+var added_sec_size
+var mainModuleEntryPoint
+
+
+mov moduleBase, mod.main()
+mov mainModuleEntryPoint, mod.entry(mod.main())
+log "mainModuleEntryPoint: {0}", mainModuleEntryPoint
+permissionLoop:
+    mov moduleSize, mem.size(moduleBase)
+    mov added_sec_size, 0
+
+    cmp moduleSize, 0
+    je bypassingLoopMsg
+
+    log "Module Base Address: {0}", moduleBase
+    log "Module Size: {0}", moduleSize
+
+    mov start, moduleBase
+
+    changePermission:
+    	log "change permission: {0}", start
+    	SetPageRights start, "ExecuteReadWrite"
+
+    	add start, 0x1000
+        add added_sec_size, 0x1000
+        cmp added_sec_size, moduleSize
+        je nextModule 
+
+        jmp changePermission 
+
+    nextModule:
+        add moduleBase, moduleSize
+        jmp permissionLoop
+
+bypassingLoopMsg:
+	msg "Start bypassing"
+
+bypassingLoop:
+    mov stackPointer, esp
+
+	mov topOfStack, [stackPointer]
+
+	log "Value at the top of the stack: {0}", topOfStack
+	mov eip, topOfStack
+	mov esp, esp+8
+
+	run
+
+
+	cmp cip, mainModuleEntryPoint 
+	je end
+	jmp bypassingLoop
+
+end:
+	msg "Success bypassing."
+    ret
+	
+error:
+    msg "Error during search."
+    ret

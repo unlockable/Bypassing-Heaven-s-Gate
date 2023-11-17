@@ -1,0 +1,60 @@
+// Initialize variables for module base address, module size, and pattern search
+var handlingModuleBase
+var handlingModuleSize
+var handlingStart
+
+// Start with the base address of the main module
+mov handlingModuleBase, mod.main()
+
+// Loop through potential module addresses
+moduleLoop:
+    // Get the size of the current module
+    mov handlingModuleSize, mem.size(handlingModuleBase)
+    
+    // Check if the module size is valid
+    cmp handlingModuleSize, 0
+    je endLoop
+
+    // Log the module's base address and size
+    log "Module Base Address: {0}", handlingModuleBase
+    log "Module Size: {0}", handlingModuleSize
+
+    // Set handlingStart address for pattern search within this module
+    mov handlingStart, handlingModuleBase
+
+    // Pattern search within the module
+    findPattern:
+        // Search for the pattern handlingStarting from handlingStart address
+        find handlingStart, "EA????????3300"
+        
+        cmp result, 0
+        je nextModule // Jump to next module if no more matches found
+
+        // Log the address where the pattern was found
+        log "Pattern found at: {0}", result
+
+        // Set a breakpoint if needed
+        // bp result
+
+        // Update handlingStart to search for the next occurrence
+        bp result
+        mov handlingStart, result
+        add handlingStart, 1
+
+        // Check if the handlingStart address has exceeded the module size
+        jmp findPattern // If within the module, continue the search
+
+    nextModule:
+        // Increment handlingModuleBase to the next module
+        add handlingModuleBase, handlingModuleSize
+        jmp moduleLoop
+
+endLoop:
+    // End of the script
+    msg "Search complete. Please rehandlingStart debugger and use bypassing script"
+
+    ret
+
+error:
+    msg "Error during search."
+    ret
